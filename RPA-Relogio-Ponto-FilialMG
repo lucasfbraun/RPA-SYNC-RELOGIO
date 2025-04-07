@@ -9,8 +9,8 @@ import json
 urllib3.disable_warnings()
 
 # === CONFIGURAÇÕES ===
-login_url = "http://186.195.226.138:4200/login.fcgi"
-export_url_base = "https://186.195.226.138:4200/export_users_csv.fcgi?session="
+login_url = "https://186.195.226.138:4210/login.fcgi"
+export_url_base = "https://186.195.226.138:4210/export_users_csv.fcgi?session="
 
 # Credenciais de login
 dados_login = {"login": "admin", "password": "admin"}
