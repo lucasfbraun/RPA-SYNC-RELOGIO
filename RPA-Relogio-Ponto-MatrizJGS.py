@@ -70,11 +70,11 @@ try:
                     file.write(resposta_export.text)
                 mensagem = f"Arquivo exportado com sucesso para: {output_file}"
                 print(mensagem)
-                enviar_email("Exportação de Usuários Bem-sucedida", mensagem, destinatario)
+                enviar_email("Backup relógio ponto matriz finalizado com sucesso", mensagem, destinatario)
             else:
-                mensagem = f"Erro ao exportar usuários. Código: {resposta_export.status_code}\nResposta do servidor: {resposta_export.text}"
+                mensagem = f"Erro ao efetuar backup relogio ponto matriz: {resposta_export.status_code}\nResposta do servidor: {resposta_export.text}"
                 print(mensagem)
-                enviar_email("Falha na Exportação de Usuários", mensagem, destinatario)
+                enviar_email("Erro ao efetuar backup relogio ponto matriz", mensagem, destinatario)
 
     elif resposta_login.status_code == 401:
         mensagem = "Falha no login: credenciais inválidas"
