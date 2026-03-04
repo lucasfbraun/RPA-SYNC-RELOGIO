@@ -1,18 +1,30 @@
+import os
 import requests
 from datetime import datetime, timedelta
 import urllib3
+from dotenv import load_dotenv
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
-IP = "10.1.1.212"
-USER = "admin"
-PASSWORD = "admin"
-TIMEZONE = "-0300"
-TIME_COMPENSATION_SECONDS = 1  # compensa pequeno atraso
+# Carrega variáveis do .env (na mesma pasta do script, por padrão)
+load_dotenv()
+
+IP = os.getenv("RELOGIO_IP", "10.1.1.212")
+USER = os.getenv("RELOGIO_USER", "admin")
+PASSWORD = os.getenv("RELOGIO_PASSWORD", "admin")
+
+# opcionais (se quiser colocar no .env também)
+TIMEZONE = os.getenv("RELOGIO_TIMEZONE", "-0300")
+TIME_COMPENSATION_SECONDS = int(os.getenv("RELOGIO_COMPENSATION_SECONDS", "1"))
 
 BASE_URL = f"https://{IP}"
 
+
 def main():
+    # validação básica
+    if not USER or not PASSWORD or not IP:
+        raise ValueError("Faltando RELOGIO_IP / RELOGIO_USER / RELOGIO_PASSWORD no .env")
+
     # 1) Login
     r = requests.post(
         f"{BASE_URL}/login.fcgi",
@@ -66,6 +78,7 @@ def main():
         except Exception:
             pass
         print("Sessao encerrada")
+
 
 if __name__ == "__main__":
     main()
