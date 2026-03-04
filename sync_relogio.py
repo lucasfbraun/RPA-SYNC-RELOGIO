@@ -5,30 +5,31 @@ import urllib3
 from dotenv import load_dotenv
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-
-# Carrega variáveis do .env (na mesma pasta do script, por padrão)
 load_dotenv()
 
-IP = os.getenv("RELOGIO_IP", "10.1.1.212")
-USER = os.getenv("RELOGIO_USER", "admin")
-PASSWORD = os.getenv("RELOGIO_PASSWORD", "admin")
+IP = os.getenv("RELOGIO_IP")
+USER = os.getenv("RELOGIO_USER")
+PASSWORD = os.getenv("RELOGIO_PASSWORD")
 
-# opcionais (se quiser colocar no .env também)
 TIMEZONE = os.getenv("RELOGIO_TIMEZONE", "-0300")
 TIME_COMPENSATION_SECONDS = int(os.getenv("RELOGIO_COMPENSATION_SECONDS", "1"))
 
-BASE_URL = f"https://{IP}"
-
+def require_env(name: str) -> str:
+    value = os.getenv(name)
+    if not value:
+        raise RuntimeError(f"Variavel obrigatoria ausente: {name}. Configure no .env.")
+    return value
 
 def main():
-    # validação básica
-    if not USER or not PASSWORD or not IP:
-        raise ValueError("Faltando RELOGIO_IP / RELOGIO_USER / RELOGIO_PASSWORD no .env")
+    ip = require_env("RELOGIO_IP")
+    user = require_env("RELOGIO_USER")
+    password = require_env("RELOGIO_PASSWORD")
 
-    # 1) Login
+    base_url = f"https://{ip}"
+
     r = requests.post(
-        f"{BASE_URL}/login.fcgi",
-        json={"login": USER, "password": PASSWORD},
+        f"{base_url}/login.fcgi",
+        json={"login": user, "password": password},
         verify=False,
         timeout=10,
     )
@@ -37,9 +38,7 @@ def main():
     print("Sessao:", session)
 
     try:
-        # 2) Hora atual do PC (+ compensacao)
         now = datetime.now() + timedelta(seconds=TIME_COMPENSATION_SECONDS)
-
         payload = {
             "day": now.day,
             "month": now.month,
@@ -50,9 +49,8 @@ def main():
             "timezone": TIMEZONE,
         }
 
-        # 3) Ajustar data/hora (mode=671)
         r = requests.post(
-            f"{BASE_URL}/set_system_date_time.fcgi",
+            f"{base_url}/set_system_date_time.fcgi",
             params={"session": session, "mode": 671},
             json=payload,
             verify=False,
@@ -67,10 +65,9 @@ def main():
             print("Resposta:", r.text)
 
     finally:
-        # 4) Logout
         try:
             requests.post(
-                f"{BASE_URL}/logout.fcgi",
+                f"{base_url}/logout.fcgi",
                 params={"session": session},
                 verify=False,
                 timeout=10,
@@ -78,7 +75,6 @@ def main():
         except Exception:
             pass
         print("Sessao encerrada")
-
 
 if __name__ == "__main__":
     main()
