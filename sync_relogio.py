@@ -7,38 +7,36 @@ from dotenv import load_dotenv
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 load_dotenv()
 
-IP = os.getenv("RELOGIO_IP")
 USER = os.getenv("RELOGIO_USER")
 PASSWORD = os.getenv("RELOGIO_PASSWORD")
-
 TIMEZONE = os.getenv("RELOGIO_TIMEZONE", "-0300")
 TIME_COMPENSATION_SECONDS = int(os.getenv("RELOGIO_COMPENSATION_SECONDS", "1"))
 
-def require_env(name: str) -> str:
-    value = os.getenv(name)
-    if not value:
-        raise RuntimeError(f"Variavel obrigatoria ausente: {name}. Configure no .env.")
-    return value
+RELOGIOS = os.getenv("RELOGIOS").split(",")
 
-def main():
-    ip = require_env("RELOGIO_IP")
-    user = require_env("RELOGIO_USER")
-    password = require_env("RELOGIO_PASSWORD")
 
+def sincronizar_relogio(nome, ip):
     base_url = f"https://{ip}"
 
-    r = requests.post(
-        f"{base_url}/login.fcgi",
-        json={"login": user, "password": password},
-        verify=False,
-        timeout=10,
-    )
-    r.raise_for_status()
-    session = r.json()["session"]
-    print("Sessao:", session)
+    print(f"\nSincronizando: {nome} ({ip})")
 
     try:
+        # LOGIN
+        r = requests.post(
+            f"{base_url}/login.fcgi",
+            json={"login": USER, "password": PASSWORD},
+            verify=False,
+            timeout=10,
+        )
+        r.raise_for_status()
+
+        session = r.json()["session"]
+
+        print(f"Sessao {nome}: {session}")
+
+        # HORA ATUAL
         now = datetime.now() + timedelta(seconds=TIME_COMPENSATION_SECONDS)
+
         payload = {
             "day": now.day,
             "month": now.month,
@@ -49,6 +47,9 @@ def main():
             "timezone": TIMEZONE,
         }
 
+        print(f"JSON enviado para {nome}: {payload}")
+
+        # ATUALIZA RELOGIO
         r = requests.post(
             f"{base_url}/set_system_date_time.fcgi",
             params={"session": session, "mode": 671},
@@ -58,23 +59,27 @@ def main():
         )
 
         if r.status_code == 200:
-            print("OK: Data e hora atualizadas com sucesso.")
-            print("Enviado:", payload)
+            print(f"OK - {nome} sincronizado")
         else:
-            print("ERRO: Falha ao atualizar. Status:", r.status_code)
-            print("Resposta:", r.text)
+            print(f"ERRO - {nome}: {r.text}")
 
-    finally:
-        try:
-            requests.post(
-                f"{base_url}/logout.fcgi",
-                params={"session": session},
-                verify=False,
-                timeout=10,
-            )
-        except Exception:
-            pass
-        print("Sessao encerrada")
+        # LOGOUT
+        requests.post(
+            f"{base_url}/logout.fcgi",
+            params={"session": session},
+            verify=False,
+            timeout=10,
+        )
+
+    except Exception as e:
+        print(f"FALHA - {nome}: {e}")
+
+
+def main():
+    for item in RELOGIOS:
+        nome, ip = item.split("|")
+        sincronizar_relogio(nome.strip(), ip.strip())
+
 
 if __name__ == "__main__":
     main()
