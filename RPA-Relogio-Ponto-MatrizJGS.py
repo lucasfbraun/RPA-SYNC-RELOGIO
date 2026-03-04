@@ -18,7 +18,7 @@ dados_login = {"login": "admin", "password": "admin"}
 headers = {'Content-Type': 'application/json'}
 
 # Caminho de saída do arquivo
-output_dir = r"X:\GRUPOS\Administrativo\T.I\relogio ponto backup"
+output_dir = r"X:\GRUPOS\TI\relogio ponto backup"
 output_file = os.path.join(output_dir, "usuarios_exportados_matriz.txt")
 
 # Configurações do servidor SMTP

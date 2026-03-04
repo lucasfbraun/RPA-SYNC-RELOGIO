@@ -17,7 +17,7 @@ dados_login = {"login": "admin", "password": "admin"}
 headers = {'Content-Type': 'application/json'}
 
 # Caminho de saída do arquivo
-output_dir = r"X:\GRUPOS\Gestão de Pessoas\DP\DP\Cartão ponto\Backup relógio ponto\Filial MG"
+output_dir = r"X:\GRUPOS\TI\relogio ponto backup"
 output_file = os.path.join(output_dir, "usuarios_exportados_filialmg.txt")
 
 # Configurações do servidor SMTP
@@ -26,6 +26,7 @@ smtp_port = 587  # Porta comum para TLS
 smtp_username = 'noreply@grupoflexivel.com.br'
 smtp_password = 'Flex@2025!@'
 destinatario = 'sistemas@grupoflexivel.com.br'
+
 
 def enviar_email(assunto, corpo, destinatario):
     msg = MIMEMultipart()
